@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -e
+
+INSTALL_DIR="/usr/local/bin"
+DATA_DIR="/var/lib/memos"
+SERVICE_NAME="memos"
+PORT=$1
+
+echo "📦 开始 UseMemos 二进制安装脚本"
+
+echo "🔍 获取最新 UseMemos 版本..."
+LATEST_URL=$(curl -s https://api.github.com/repos/usememos/memos/releases/latest \
+  | grep "browser_download_url.*memos_.*_linux_amd64.tar.gz" \
+  | cut -d '"' -f 4)
+
+if [ -z "$LATEST_URL" ]; then
+  echo "❌ 无法获取最新二进制下载地址，请检查网络或仓库状态。"
+  exit 1
+fi
+echo "➡️ 最新下载地址: $LATEST_URL"
+
+TMPDIR=$(mktemp -d)
+ARCHIVE="$TMPDIR/memos.tar.gz"
+echo "⬇️ 正在下载二进制包..."
+curl -L "$LATEST_URL" -o "$ARCHIVE"
+
+echo "📂 解压并安装..."
+tar -xzf "$ARCHIVE" -C "$TMPDIR"
+sudo mv "$TMPDIR/memos" "$INSTALL_DIR/"
+sudo chmod +x "$INSTALL_DIR/memos"
+
+echo "📁 创建数据目录: $DATA_DIR"
+sudo mkdir -p "$DATA_DIR"
+sudo chown "$(whoami)" "$DATA_DIR"
+
+echo
+echo "✅ UseMemos 安装完成!"
+echo "   - 二进制路径: $INSTALL_DIR/memos"
+echo "   - 数据目录:   $DATA_DIR"
+echo
+echo "💡 运行 Memos:"
+echo "   memos --mode prod --port $PORT --data $DATA_DIR"
+echo
+
+read -p "是否为 UseMemos 生成 systemd 服务并启用？(y/N) " yn
+if [[ "$yn" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+  echo "⚙️  正在创建 systemd 服务..."
+  sudo tee /etc/systemd/system/$SERVICE_NAME.service > /dev/null <<EOF
+[Unit]
+Description=UseMemos
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=$INSTALL_DIR/memos --mode prod --port $PORT --data $DATA_DIR
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now $SERVICE_NAME
+  echo "🟢 systemd 服务已启用并启动: $SERVICE_NAME"
+  echo "   查看状态: sudo systemctl status $SERVICE_NAME"
+fi
+
+echo "🎉 安装脚本执行结束!"
