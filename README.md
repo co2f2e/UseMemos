@@ -2,17 +2,18 @@
 
 <hr>
 
-## 安装
+## Installation
 ```bash
 bash <(curl -Ls https://raw.githubusercontent.com/co2f2e/memos/main/install.sh) 7000
 ```
 
-## 卸载
+## Uninstallation
 ```bash
 bash <(curl -Ls https://raw.githubusercontent.com/co2f2e/memos/main/uninstall.sh) 
 ```
-## NGINX
-```bash
+
+## NGINX Configuration
+```nginx
     location / {
         proxy_pass http://127.0.0.1:7000/;
         proxy_http_version 1.1;
