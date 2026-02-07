@@ -4,12 +4,12 @@
 
 ## Installation
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/co2f2e/memos/main/install.sh) 7000
+bash <(curl -Ls https://raw.githubusercontent.com/Meokj/memos/main/install.sh) 7000
 ```
 
 ## Uninstallation
 ```bash
-bash <(curl -Ls https://raw.githubusercontent.com/co2f2e/memos/main/uninstall.sh) 
+bash <(curl -Ls https://raw.githubusercontent.com/Meokj/memos/main/uninstall.sh) 
 ```
 
 ## NGINX Configuration
